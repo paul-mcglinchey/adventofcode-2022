@@ -1,12 +1,11 @@
 ﻿var input = File.ReadAllLines("./input.txt");
-var emptyLineIndex = input.ToList().FindIndex(x => x == string.Empty);
 
 Console.WriteLine(String.Join("\n", Enumerable
     .Range(1, 2)
     .Select(x => new
     {
         stacks = input
-            .Take(emptyLineIndex)
+            .Take(input.ToList().FindIndex(x => x == string.Empty))
             .Reverse()
             .Where(l => l.Contains("["))
             .Select(l => l
@@ -21,7 +20,7 @@ Console.WriteLine(String.Join("\n", Enumerable
             .Select(x => x.Where(x => x.Value != '.').ToList())
             .ToDictionary(x => x.First().Index, x => new Stack<char>(x.Select(x => x.Value))),
         commands = input
-            .Skip(emptyLineIndex + 1)
+            .Skip(input.ToList().FindIndex(x => x == string.Empty) + 1)
             .Select(l => l.Trim())
             .Select(l => new
             {
