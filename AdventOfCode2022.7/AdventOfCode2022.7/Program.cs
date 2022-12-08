@@ -80,16 +80,3 @@ static string[] GetDirs(string position)
 {
     return position.Split("/", StringSplitOptions.RemoveEmptyEntries);
 }
-
-static int Converge(int initial, int target, int[] values)
-{
-    var current = initial;
-
-    if (current < target && values.Length > 0)
-    {
-        current = values[0];
-        current = Converge(current, target, values.Where(v => v <= target - current).OrderByDescending(v => (target - current - v)).ToArray());
-    }
-
-    return current;
-}
