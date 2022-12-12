@@ -1,15 +1,13 @@
 ﻿var monkeys = new List<Monkey>();
 
 Setup();
+Play(null);
+Console.WriteLine($"Monkey business level (Part one): {monkeys.OrderByDescending(x => x.InspectionCount).Take(2).Select(x => x.InspectionCount).Aggregate((current, final) => current * final)}");
 
+Setup();
 var moduloFactor = monkeys.Aggregate(1, (current, monkey) => current * monkey.Test);
-
 Play(moduloFactor);
-
-Console.WriteLine(String.Join("\n", monkeys.Select(x => x.ToString())));
-Console.WriteLine("\n");
-
-Console.WriteLine($"Monkey business level (Part one): {monkeys.OrderByDescending(x => x.InspectionCount).Take(2).Aggregate(0, (current, final) => current == 0 ? final.InspectionCount : current * final.InspectionCount)}");
+Console.WriteLine($"Monkey business level (Part two): {monkeys.OrderByDescending(x => x.InspectionCount).Take(2).Select(x => x.InspectionCount).Aggregate((current, final) => current * final)}");
 
 void Setup()
 {
@@ -70,14 +68,11 @@ void Setup()
             continue;
         }
     }
-
-    Console.WriteLine(String.Join("\n", monkeys.Select(x => x.ToString())));
-    Console.WriteLine("\n");
 }
 
 void Play(int? moduloFactor)
 {
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < (moduloFactor == null ? 20 : 10000); i++)
     {
         // new round
         foreach (var m in monkeys)
@@ -126,7 +121,7 @@ class Monkey
 
     public int FalseDest { get; set; }
 
-    public int InspectionCount { get; set; } = 0;
+    public long InspectionCount { get; set; } = 0;
 
     public string ToString()
     {
