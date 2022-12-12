@@ -30,5 +30,9 @@ while (!visited.Contains(start.Value))
     // eliminate movements
 
     // weight the available moves if there's multiple
+
+    // add to the visited set
+
+    // loop will continue until we converge on the start position
 }
 
