@@ -16,14 +16,12 @@ openList.Add(start);
 
 while (openList.Count > 0)
 {
-    Console.WriteLine($"Open nodes: {openList.Count}, Closed nodes: {closedList.Count}");
-
     var currentNode = openList.First();
     var currentIndex = 0;
 
     for (int i = 1; i < openList.Count; i++)
     {
-        if (openList[i].F < currentNode.F || (openList[i].F == currentNode.F && openList[i].G < currentNode.G))
+        if (openList[i].F < currentNode.F)
         {
             currentNode = openList[i];
             currentIndex = i;
@@ -44,7 +42,16 @@ while (openList.Count > 0)
             current = current.Parent;
         }
 
-        Console.WriteLine($"Part one: {path.Count - 1}");
+        for (int i = 0; i < input.Length; i++)
+        {
+            for (int j = 0; j < input[i].Length; j++)
+            {
+                Console.Write(path.Contains((j, i)) ? "X" : " ");
+            }
+            Console.WriteLine("\n");
+        }
+
+        Console.WriteLine($"Part one: {path.Distinct().Count() - 1}");
         break;
     }
 
@@ -80,10 +87,10 @@ while (openList.Count > 0)
             continue;
         }
 
-        child.G = (decimal)Math.Sqrt(Math.Pow(child.Position.Item1 - start.Position.Item1, 2) + Math.Pow(child.Position.Item2 - start.Position.Item2, 2));
-        child.H = (decimal)Math.Sqrt(Math.Pow(child.Position.Item1 - end.Position.Item1, 2) + Math.Pow(child.Position.Item2 - end.Position.Item2, 2));
+        child.G = currentNode.G + 1;
+        child.H = (int)Math.Sqrt(Math.Pow(child.Position.Item1 - end.Position.Item1, 2) + Math.Pow(child.Position.Item2 - end.Position.Item2, 2));
 
-        if (openList.Select(x => x.Position).Contains(child.Position) && child.G > openList.Where(x => x.Position == child.Position).Single().G)
+        if (openList.Select(x => x.Position).Contains(child.Position))
         {
             continue;
         }
@@ -106,11 +113,11 @@ public class Node
 
     public (int, int) Position { get; set; }
 
-    public decimal G { get; set; }
+    public int G { get; set; }
 
-    public decimal H { get; set; }
+    public int H { get; set; }
 
-    public decimal F => G + H;
+    public int F => G + H;
 
     public bool Equals(Node other) => this.Position == other.Position;
 }
