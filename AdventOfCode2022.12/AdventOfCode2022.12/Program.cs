@@ -6,7 +6,6 @@ var endIndex = string.Join("", input).IndexOf('E');
 
 Node start = new Node(null, (startIndex % width, startIndex / width));
 start.G = start.H = 0;
-
 Node end = new Node(null, (endIndex % width, endIndex / width));
 end.G = end.H = 0;
 
@@ -17,14 +16,16 @@ openList.Add(start);
 
 while (openList.Count > 0)
 {
+    Console.WriteLine($"Open nodes: {openList.Count}, Closed nodes: {closedList.Count}");
+
     var currentNode = openList.First();
     var currentIndex = 0;
 
-    for (int i = 0; i < openList.Count; i++)
+    for (int i = 1; i < openList.Count; i++)
     {
-        if (openList.ElementAt(i).F < currentNode.F)
+        if (openList[i].F < currentNode.F || (openList[i].F == currentNode.F && openList[i].G < currentNode.G))
         {
-            currentNode = openList.ElementAt(i);
+            currentNode = openList[i];
             currentIndex = i;
         }
     }
@@ -64,7 +65,7 @@ while (openList.Count > 0)
         var height = (byte)(character == 'S' ? 'a' : character == 'E' ? 'z' : character);
 
         // make sure the node is reachable (not higher than 1 unit)
-        if (height < currentNodeHeight || height > currentNodeHeight + 1)
+        if (height > currentNodeHeight + 1)
         {
             continue;
         }
@@ -79,15 +80,18 @@ while (openList.Count > 0)
             continue;
         }
 
-        child.G = currentNode.G + 1;
+        child.G = (decimal)Math.Sqrt(Math.Pow(child.Position.Item1 - start.Position.Item1, 2) + Math.Pow(child.Position.Item2 - start.Position.Item2, 2));
         child.H = (decimal)Math.Sqrt(Math.Pow(child.Position.Item1 - end.Position.Item1, 2) + Math.Pow(child.Position.Item2 - end.Position.Item2, 2));
 
-        if (openList.Where(x => x.Position == child.Position && child.G > x.G).ToList().Count > 0)
+        if (openList.Select(x => x.Position).Contains(child.Position) && child.G > openList.Where(x => x.Position == child.Position).Single().G)
         {
             continue;
         }
 
-        openList.Add(child);
+        if (!openList.Select(x => x.Position).Contains(child.Position))
+        {
+            openList.Add(child);
+        }
     }
 }
 public class Node
