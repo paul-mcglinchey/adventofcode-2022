@@ -4,114 +4,105 @@ var width = input.First().Length;
 var startIndex = string.Join("", input).IndexOf('S');
 var endIndex = string.Join("", input).IndexOf('E');
 
-Node start = new Node(null, (startIndex % width, startIndex / width));
+Node start = new Node(null, (startIndex % width, startIndex / width), (byte)'a');
 start.G = start.H = 0;
-Node end = new Node(null, (endIndex % width, endIndex / width));
+Node end = new Node(null, (endIndex % width, endIndex / width), (byte)'z');
 end.G = end.H = 0;
 
-var openList = new List<Node>();
-var closedList = new List<Node>();
+// Part one
+Console.WriteLine($"Part one: {Astar(start, end)}");
 
-openList.Add(start);
+// Part two
+var lowestAstar = string.Join("", input)
+    .Select((x, i) => new { index = i, height = x })
+    .Where(x => x.height == 'a')
+    .Select(x => new Node(null, (x.index % width, x.index / width), (byte)'a'))
+    .Where(x => x.GetChildren(input, width - 1, input.Length - 1).Any(c => c.Height == (byte)'b'))
+    .Select(x => Astar(x, end))
+    .Min();
 
-while (openList.Count > 0)
+Console.WriteLine($"Part two: {lowestAstar}");
+
+int? Astar(Node start, Node end)
 {
-    var currentNode = openList.First();
-    var currentIndex = 0;
+    var openList = new List<Node>();
+    var closedList = new List<Node>();
 
-    for (int i = 1; i < openList.Count; i++)
+    openList.Add(start);
+
+    while (openList.Count > 0)
     {
-        if (openList[i].F < currentNode.F)
-        {
-            currentNode = openList[i];
-            currentIndex = i;
-        }
-    }
+        var currentNode = openList.First();
+        var currentIndex = 0;
 
-    openList.RemoveAt(currentIndex);
-    closedList.Add(currentNode);
-
-    if (currentNode.Equals(end))
-    {
-        var path = new HashSet<(int, int)>();
-        var current = currentNode;
-        
-        while (current != null)
+        for (int i = 1; i < openList.Count; i++)
         {
-            path.Add(current.Position);
-            current = current.Parent;
-        }
-
-        for (int i = 0; i < input.Length; i++)
-        {
-            for (int j = 0; j < input[i].Length; j++)
+            if (openList[i].F < currentNode.F)
             {
-                Console.Write(path.Contains((j, i)) ? "X" : " ");
+                currentNode = openList[i];
+                currentIndex = i;
             }
-            Console.WriteLine("\n");
         }
 
-        Console.WriteLine($"Part one: {path.Distinct().Count() - 1}");
-        break;
+        openList.RemoveAt(currentIndex);
+        closedList.Add(currentNode);
+
+        if (currentNode.Equals(end))
+        {
+            var path = new HashSet<(int, int)>();
+            var current = currentNode;
+
+            while (current != null)
+            {
+                path.Add(current.Position);
+                current = current.Parent;
+            }
+
+            return path.Count() - 1;
+        }
+
+        var currentNodeCharacter = input[currentNode.Position.Item2][currentNode.Position.Item1];
+        var currentNodeHeight = (byte)(currentNodeCharacter == 'S' ? 'a' : currentNodeCharacter == 'E' ? 'z' : currentNodeCharacter);
+
+        foreach (Node child in currentNode.GetChildren(input, width - 1, input.Length - 1))
+        {
+            if (closedList.Select(x => x.Position).Contains(child.Position))
+            {
+                continue;
+            }
+
+            child.G = currentNode.G + 1;
+            child.H = (int)Math.Sqrt(Math.Pow(child.Position.Item1 - end.Position.Item1, 2) + Math.Pow(child.Position.Item2 - end.Position.Item2, 2));
+
+            if (openList.Select(x => x.Position).Contains(child.Position))
+            {
+                continue;
+            }
+
+            if (!openList.Select(x => x.Position).Contains(child.Position))
+            {
+                openList.Add(child);
+            }
+        }
     }
 
-    var children = new List<Node>();
-    var currentNodeCharacter = input[currentNode.Position.Item2][currentNode.Position.Item1];
-    var currentNodeHeight = (byte)(currentNodeCharacter == 'S' ? 'a' : currentNodeCharacter == 'E' ? 'z' : currentNodeCharacter);
-
-    foreach ((int, int) pos in new HashSet<(int, int)>() { (-1, 0), (0, 1), (1, 0), (0, -1) })
-    {
-        var nodePosition = (currentNode.Position.Item1 + pos.Item1, currentNode.Position.Item2 + pos.Item2);
-
-        if (nodePosition.Item1 > (width - 1) || nodePosition.Item1 < 0 || nodePosition.Item2 > (input.Length - 1) || nodePosition.Item2 < 0)
-        {
-            continue;
-        }
-
-        var character = input[nodePosition.Item2][nodePosition.Item1];
-        var height = (byte)(character == 'S' ? 'a' : character == 'E' ? 'z' : character);
-
-        // make sure the node is reachable (not higher than 1 unit)
-        if (height > currentNodeHeight + 1)
-        {
-            continue;
-        }
-
-        children.Add(new Node(currentNode, nodePosition));
-    };
-
-    foreach (Node child in children)
-    {
-        if (closedList.Select(x => x.Position).Contains(child.Position))
-        {
-            continue;
-        }
-
-        child.G = currentNode.G + 1;
-        child.H = (int)Math.Sqrt(Math.Pow(child.Position.Item1 - end.Position.Item1, 2) + Math.Pow(child.Position.Item2 - end.Position.Item2, 2));
-
-        if (openList.Select(x => x.Position).Contains(child.Position))
-        {
-            continue;
-        }
-
-        if (!openList.Select(x => x.Position).Contains(child.Position))
-        {
-            openList.Add(child);
-        }
-    }
+    return null;
 }
+
 public class Node
 {
-    public Node(Node? parent, (int, int) position)
+    public Node(Node? parent, (int, int) position, byte height)
     {
         Parent = parent;
         Position = position;
+        Height = height;
     }
 
     public Node? Parent { get; set; }
 
     public (int, int) Position { get; set; }
+
+    public byte Height { get; set; }
 
     public int G { get; set; }
 
@@ -120,4 +111,32 @@ public class Node
     public int F => G + H;
 
     public bool Equals(Node other) => this.Position == other.Position;
+
+    public List<Node> GetChildren(string[] grid, int widthOfGrid, int heightOfGrid)
+    {
+        var children = new List<Node>();
+
+        foreach ((int, int) pos in new HashSet<(int, int)>() { (-1, 0), (0, 1), (1, 0), (0, -1) })
+        {
+            var nodePosition = (this.Position.Item1 + pos.Item1, this.Position.Item2 + pos.Item2);
+
+            if (nodePosition.Item1 > widthOfGrid || nodePosition.Item1 < 0 || nodePosition.Item2 > heightOfGrid || nodePosition.Item2 < 0)
+            {
+                continue;
+            }
+
+            var character = grid[nodePosition.Item2][nodePosition.Item1];
+            var height = (byte)(character == 'S' ? 'a' : character == 'E' ? 'z' : character);
+
+            // make sure the node is reachable (not higher than 1 unit)
+            if (height > this.Height + 1)
+            {
+                continue;
+            }
+
+            children.Add(new Node(this, nodePosition, height));
+        };
+
+        return children;
+    }
 }
